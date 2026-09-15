@@ -119,8 +119,16 @@ export default function App() {
   }, [metric, pm25, psi]);
 
   const sparkValues = useMemo(
-    () => history.map((h) => h.pm25[region]).filter((v): v is number => v != null),
-    [history, region],
+    () =>
+      history
+        .map((h) => {
+          if (metric === 'psi') return h.psi[region] ?? null;
+          const pm = h.pm25[region];
+          if (pm == null) return null;
+          return metric === 'aqi' ? usEpaAqi(pm) : pm;
+        })
+        .filter((v): v is number => v != null),
+    [history, region, metric],
   );
   const sparkWidth = screenWidth - 48;
   // Center on the centroid of the five regions so they sit mid-frame; tighter
@@ -219,7 +227,12 @@ export default function App() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Last 24 hours</Text>
               {sparkValues.length >= 2 ? (
-                <Sparkline values={sparkValues} color={theme.color} width={sparkWidth} />
+                <Sparkline
+                  values={sparkValues}
+                  color={theme.color}
+                  width={sparkWidth}
+                  unit={metric === 'psi' ? 'PSI' : metric === 'aqi' ? 'AQI' : 'µg/m³'}
+                />
               ) : (
                 <Text style={styles.hint}>Collecting readings…</Text>
               )}
