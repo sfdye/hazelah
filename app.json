@@ -12,6 +12,9 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "HazeLah picks your nearest NEA region to show the air quality where you are.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "PASTE_IOS_KEY"
       }
     },
     "android": {
@@ -25,7 +28,12 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "PASTE_ANDROID_KEY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

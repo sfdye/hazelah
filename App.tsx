@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import MapView, { Circle as MapCircle, UrlTile } from 'react-native-maps';
+import MapView, { Circle as MapCircle, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { fetchSnapshot } from './src/api';
+import { DARK_MAP_STYLE } from './src/mapStyle';
 import { appendHistory, backfillHistory, loadHistory } from './src/history';
 import {
   HeadlineMetric,
@@ -35,10 +36,6 @@ const METRICS: Array<{ key: HeadlineMetric; label: string }> = [
 ];
 
 const MAP_HEIGHT = 250;
-
-// Free Carto basemap (OpenStreetMap data, CARTO styling) — opaque dark tiles
-// fully cover the platform base map, giving identical rendering on iOS/Android.
-const TILE_URL = 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png';
 
 // Label render order: selected on top, Central above its W/E neighbours
 // (pills sit at exact geo positions and Central is the widest).
@@ -219,20 +216,14 @@ export default function App() {
                 <MapView
                   style={{ width: sparkWidth, height: MAP_HEIGHT }}
                   initialRegion={mapRegion}
-                  userInterfaceStyle="dark"
+                  provider={PROVIDER_GOOGLE}
+                  customMapStyle={DARK_MAP_STYLE}
                   scrollEnabled={false}
                   zoomEnabled={false}
                   rotateEnabled={false}
                   pitchEnabled={false}
                   toolbarEnabled={false}
                 >
-                  {Platform.OS === 'android' && (
-                    <UrlTile
-                      urlTemplate={TILE_URL}
-                      maximumZ={19}
-                      tileSize={256}
-                    />
-                  )}
                   {REGIONS.map((r) => {
                     const pm = snapshot?.readings[r.name]?.pm25;
                     const band = pm != null ? neaBand(pm) : null;
@@ -290,9 +281,6 @@ export default function App() {
                     </Pressable>
                   );
                 })}
-                {Platform.OS === 'android' && (
-                  <Text style={styles.mapAttribution}>© OpenStreetMap · © CARTO</Text>
-                )}
               </View>
             </View>
 
@@ -382,13 +370,6 @@ const styles = StyleSheet.create({
   },
   mapLabelText: { fontSize: 12, fontWeight: '700' },
   mapLabelValue: { fontSize: 15, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  mapAttribution: {
-    position: 'absolute',
-    bottom: 4,
-    left: 6,
-    color: 'rgba(255,255,255,0.55)',
-    fontSize: 9,
-  },
   sectionTitle: { color: COLORS.subtext, fontSize: 13, fontWeight: '600' },
   hint: { color: COLORS.faint, fontSize: 13, marginTop: 12 },
   divider: { height: 1, marginTop: 28 },
