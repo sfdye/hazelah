@@ -22,3 +22,10 @@ export const COLORS = {
 };
 
 export const FALLBACK_THEME = BAND_THEME.normal;
+
+export function withAlpha(hex: string, alpha: number): string {
+  const a = Math.round(alpha * 255)
+    .toString(16)
+    .padStart(2, '0');
+  return `#${a}${hex.slice(1)}`;
+}

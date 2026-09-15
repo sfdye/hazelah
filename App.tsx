@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import MapView, { Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { fetchSnapshot } from './src/api';
 import { appendHistory, loadHistory } from './src/history';
@@ -21,7 +22,7 @@ import {
   sgPsiSubIndex,
   usEpaAqi,
 } from './src/airQuality';
-import { BAND_THEME, COLORS, FALLBACK_THEME } from './src/theme';
+import { BAND_THEME, COLORS, FALLBACK_THEME, withAlpha } from './src/theme';
 import { REGIONS, RegionName, nearestRegion, regionLabel } from './src/regions';
 import { HistoryEntry, Snapshot } from './src/types';
 import { Sparkline } from './src/components/Sparkline';
@@ -31,6 +32,20 @@ const METRICS: Array<{ key: HeadlineMetric; label: string }> = [
   { key: 'aqi', label: 'AQI' },
   { key: 'psi', label: 'Hourly PSI' },
 ];
+
+const MAP_CENTER = { latitude: 1.3521, longitude: 103.8198 };
+const MAP_DELTA = { latitudeDelta: 0.45, longitudeDelta: 0.6 };
+const MAP_HEIGHT = 240;
+
+function projectToMap(
+  latitude: number,
+  longitude: number,
+  width: number,
+): { x: number; y: number } {
+  const x = ((longitude - MAP_CENTER.longitude) / MAP_DELTA.longitudeDelta + 0.5) * width;
+  const y = (0.5 - (latitude - MAP_CENTER.latitude) / MAP_DELTA.latitudeDelta) * MAP_HEIGHT;
+  return { x, y };
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -167,6 +182,71 @@ export default function App() {
 
             <View style={[styles.divider, { backgroundColor: COLORS.divider }]} />
 
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, styles.mapTitle]}>Regions</Text>
+              <View style={[styles.mapCard, { width: sparkWidth, height: MAP_HEIGHT }]}>
+                <MapView
+                  style={{ width: sparkWidth, height: MAP_HEIGHT }}
+                  userInterfaceStyle="dark"
+                  initialRegion={{ ...MAP_CENTER, ...MAP_DELTA }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  rotateEnabled={false}
+                  pitchEnabled={false}
+                >
+                  {REGIONS.map((r) => {
+                    const pm = snapshot?.readings[r.name]?.pm25;
+                    const band = pm != null ? neaBand(pm) : null;
+                    const color = band ? BAND_THEME[band.band].color : COLORS.faint;
+                    const selected = r.name === region;
+                    return (
+                      <Circle
+                        key={r.name}
+                        center={r.labelLocation}
+                        radius={6000}
+                        strokeColor={withAlpha(color, selected ? 1 : 0.7)}
+                        strokeWidth={selected ? 2.5 : 1}
+                        fillColor={withAlpha(color, selected ? 0.45 : 0.22)}
+                      />
+                    );
+                  })}
+                </MapView>
+                {REGIONS.map((r) => {
+                  const { x, y } = projectToMap(
+                    r.labelLocation.latitude,
+                    r.labelLocation.longitude,
+                    sparkWidth,
+                  );
+                  const pm = snapshot?.readings[r.name]?.pm25;
+                  const band = pm != null ? neaBand(pm) : null;
+                  const color = band ? BAND_THEME[band.band].color : COLORS.faint;
+                  const selected = r.name === region;
+                  return (
+                    <Pressable
+                      key={r.name}
+                      onPress={() => setRegion(r.name)}
+                      style={[
+                        styles.mapLabel,
+                        { left: x, top: y, borderColor: color },
+                        selected && { backgroundColor: color },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.mapLabelText, { color }, selected && { color: '#000' }]}
+                      >
+                        {regionLabel(r.name)}
+                      </Text>
+                      <Text
+                        style={[styles.mapLabelValue, { color }, selected && { color: '#000' }]}
+                      >
+                        {pm ?? '–'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
             <View style={styles.psiRow}>
               <Text style={styles.sectionTitle}>24-hr PSI</Text>
               <Text style={styles.psiValue}>
@@ -231,6 +311,26 @@ const styles = StyleSheet.create({
   },
   advisoryText: { color: COLORS.text, fontSize: 14, textAlign: 'center' },
   section: { marginTop: 32, alignItems: 'center' },
+  mapTitle: { marginBottom: 12 },
+  mapCard: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  mapLabel: {
+    position: 'absolute',
+    backgroundColor: 'rgba(10,10,10,0.78)',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignItems: 'center',
+    minWidth: 52,
+    transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+  },
+  mapLabelText: { fontSize: 11, fontWeight: '700' },
+  mapLabelValue: { fontSize: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
   sectionTitle: { color: COLORS.subtext, fontSize: 13, fontWeight: '600' },
   hint: { color: COLORS.faint, fontSize: 13, marginTop: 12 },
   divider: { height: 1, marginTop: 28 },
