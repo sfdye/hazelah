@@ -14,7 +14,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
-        "googleMapsApiKey": "PASTE_IOS_KEY"
+        "googleMapsApiKey": "AIzaSyCupXBZkhvciRwxZZkahgwfcBWCiBdsIOs"
       }
     },
     "android": {
@@ -31,7 +31,7 @@
       "predictiveBackGestureEnabled": false,
       "config": {
         "googleMaps": {
-          "apiKey": "PASTE_ANDROID_KEY"
+          "apiKey": "AIzaSyAo5PvOFEnDh75pf6bRElVQTqM6naWjFBg"
         }
       }
     },
@@ -43,6 +43,9 @@
         "projectId": "a36dd94f-e375-432c-b1ba-fbed08c55687"
       }
     },
-    "owner": "sfdye"
+    "owner": "sfdye",
+    "plugins": [
+      "./plugins/react-native-maps-pod"
+    ]
   }
 }
