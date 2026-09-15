@@ -29,8 +29,17 @@ A simple, beautiful Singapore air-quality app: glanceable haze readings, thresho
 | data.gov.sg (NEA) | `api-open.data.gov.sg/v2/real-time/api/psi` | 24-hr PSI, 5 regions | 15 min |
 
 - Free for commercial use under the Open Data Licence; no API key for basic rate limits (key raises limits). Dataset pages: `d_e1058d6974c877257e32048ab128ad83` (PM2.5), `d_fe37906a0182569d891506e815e819b7` (PSI).
-- Historical backfill via `date` param.
 - NEA does not publish a 1-hour index — only 1-hr PM2.5 concentration + 24-hr PSI. All "hourly AQI/PSI" in third-party apps is computed client-side.
+
+### Legacy v1 API (unofficial backfill source)
+
+The pre-2025 API family `api.data.gov.sg/v1/environment/*` is deprecated but still serving (verified Sep 2026). v2 has no history, so the app backfills the 24-h sparkline from it (`fetchDayPm25` in `src/api.ts`).
+
+- Query modes: no params → latest; `date=YYYY-MM-DD` (SGT day) → full day, hourly (only up to current hour); `date_time=YYYY-MM-DDTHH:00:00` → nearest single item.
+- Endpoints verified: `psi` (hourly, 12 reading families incl. `psi_twenty_four_hourly`, `pm25_sub_index`, `pm25_twenty_four_hourly`), `pm25` (hourly `pm25_one_hourly` per region), `uv-index`. Same `date`/`date_time` semantics across the family (`2-hour-weather-forecast`, `rainfall`, `air-temperature`, …) — available if widgets need context data later.
+- Shape: flat envelope (no `code`/`errorMsg` wrapper), field names differ slightly from v2 (`update_timestamp` vs `updatedTimestamp`). Timestamps are `+08:00` with ~11-min publication lag after the hour.
+- Keyless, no documented rate limit. App hits it at most twice per launch (yesterday + today), merged idempotently into AsyncStorage history.
+- Fails soft: any error returns `[]` and the sparkline reverts to slow accumulation from live polling. If the endpoint dies, only the backfill is lost.
 
 ## 4. Index computation (client module, ~50 lines)
 
