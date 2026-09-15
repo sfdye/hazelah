@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "hazelah-tmp",
-    "slug": "hazelah-tmp",
+    "name": "HazeLah",
+    "slug": "hazelah",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },

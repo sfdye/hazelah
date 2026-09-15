@@ -62,7 +62,7 @@ Key property: every surface fetches NEA directly (one GET + JSON parse each). Ze
 ## 6. Phone app (Expo + React Native + TypeScript)
 
 - One screen, no tabs: big 1-hr PM2.5 number, band-colored background (dark-mode-first gradient), region name, 24-hr sparkline, 24-hr PSI secondary line, one health-advisory line ("Masks recommended outdoors").
-- Region resolution: GPS → bounding-box match to nearest of 5 NEA regions (no geocoding API); manual override in settings.
+- Region resolution: silent permission read (`getForegroundPermissionsAsync`, no prompt on launch) → nearest-centroid match against NEA regionMetadata labelLocations (no geocoding API); manual region chips; opt-in "locate me" deferred to M2.
 - History: AsyncStorage ring buffer + first-launch backfill via `date` param.
 - Refresh: pull-to-refresh, silent on foreground, background fetch as widget fallback.
 - Settings: notification threshold (band or PSI value), region override, AQI/PSI display toggle.
@@ -199,3 +199,5 @@ Personal project → `sfdye` handle segment, not `lwan` (Zendesk identity). Watc
 | 2026-09-15 | NEA 4-band scale as primary metric | Official + health-advisory basis; computed AQI/PSI toggles only |
 | 2026-09-15 | Name: HazeLah | Short, local, ownable; store-review risk assessed as low |
 | 2026-09-15 | Identifiers: `com.sfdye.hazelah` base | Personal project → sfdye handle; watch/widget/App-Group suffixes hang off this base; irreversible post-publish so locked early |
+| 2026-09-15 | No location prompt on cold launch; silent read + manual chips (M1 verified) | Cold-launch permission prompts are an anti-pattern; Expo Go also surfaces its own dialog — M2 adds opt-in "locate me" |
+| 2026-09-15 | M1 done: Expo SDK 57 scaffold + data layer + main screen live on iOS simulator (real NEA data verified) | API spike confirmed shapes: psi → `psi_twenty_four_hourly` + sub-indices; pm25 → `pm25_one_hourly`; regionMetadata has labelLocation |

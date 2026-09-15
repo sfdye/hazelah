@@ -64,7 +64,7 @@ export default function App() {
     (async () => {
       setHistory(await loadHistory());
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.getForegroundPermissionsAsync();
         if (status === 'granted') {
           const pos = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Low,
