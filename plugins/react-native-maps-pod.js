@@ -6,9 +6,7 @@ const { withPodfile } = require('@expo/config-plugins');
 const LEGACY_LINE =
   "pod 'react-native-google-maps', path: File.dirname(`node --print \"require.resolve('react-native-maps/package.json')\"`)";
 const FIXED_LINES =
-  "pod 'react-native-maps', path: File.dirname(`node --print \"require.resolve('react-native-maps/package.json')\"`)\n" +
-  "  pod 'GoogleMaps', '~> 9.0'\n" +
-  "  pod 'Google-Maps-iOS-Utils', '~> 6.0'";
+  "pod 'react-native-maps/Google', path: File.dirname(`node --print \"require.resolve('react-native-maps/package.json')\"`)";
 
 function withReactNativeMapsPod(config) {
   return withPodfile(config, (config) => {

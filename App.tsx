@@ -123,17 +123,18 @@ export default function App() {
     [history, region],
   );
   const sparkWidth = screenWidth - 48;
-  // Longitude span fixed to frame all of Singapore; latitude span derives from the
-  // view aspect so the region MapKit shows exactly matches our pill pixel math.
-  const mapRegion = useMemo(
-    () => ({
-      latitude: 1.3046,
-      longitude: 103.847,
-      longitudeDelta: 0.572,
-      latitudeDelta: (0.572 * MAP_HEIGHT) / sparkWidth,
-    }),
-    [sparkWidth],
-  );
+  // Center on the centroid of the five regions so they sit mid-frame; tighter
+  // longitude span zooms in past the full-island fit.
+  const mapRegion = useMemo(() => {
+    const lat = REGIONS.reduce((s, r) => s + r.labelLocation.latitude, 0) / REGIONS.length;
+    const lng = REGIONS.reduce((s, r) => s + r.labelLocation.longitude, 0) / REGIONS.length;
+    return {
+      latitude: lat,
+      longitude: lng,
+      longitudeDelta: 0.5,
+      latitudeDelta: (0.5 * MAP_HEIGHT) / sparkWidth,
+    };
+  }, [sparkWidth]);
   const toPx = useCallback(
     (latitude: number, longitude: number) => ({
       x:
