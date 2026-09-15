@@ -149,6 +149,22 @@ export default function App() {
     [mapRegion, sparkWidth],
   );
 
+  // Per-region reading for the active metric tab (pills + circle colors).
+  const regionReading = useCallback(
+    (name: RegionName) => {
+      const rd = snapshot?.readings[name];
+      if (metric === 'psi') {
+        return { value: rd?.psi ?? null, band: rd?.psi != null ? psiBand(rd.psi) : null };
+      }
+      const pm = rd?.pm25 ?? null;
+      return {
+        value: metric === 'aqi' && pm != null ? usEpaAqi(pm) : pm,
+        band: pm != null ? neaBand(pm) : null,
+      };
+    },
+    [metric, snapshot],
+  );
+
   return (
     <LinearGradient colors={[theme.bgFrom, theme.bgTo]} style={styles.root}>
       <StatusBar style="light" />
@@ -226,8 +242,7 @@ export default function App() {
                   toolbarEnabled={false}
                 >
                   {REGIONS.map((r) => {
-                    const pm = snapshot?.readings[r.name]?.pm25;
-                    const band = pm != null ? neaBand(pm) : null;
+                    const { band } = regionReading(r.name);
                     const color = band ? BAND_THEME[band.band].color : COLORS.faint;
                     const selected = r.name === region;
                     return (
@@ -255,8 +270,7 @@ export default function App() {
                       r.labelLocation.latitude,
                       r.labelLocation.longitude,
                     );
-                    const pm = snapshot?.readings[r.name]?.pm25;
-                    const band = pm != null ? neaBand(pm) : null;
+                    const { value: rv, band } = regionReading(r.name);
                     const color = band ? BAND_THEME[band.band].color : COLORS.faint;
                     const selected = r.name === region;
                     return (
@@ -277,7 +291,7 @@ export default function App() {
                       <Text
                         style={[styles.mapLabelValue, { color }, selected && { color: '#000' }]}
                       >
-                        {pm ?? '–'}
+                        {rv ?? '–'}
                       </Text>
                     </Pressable>
                   );
