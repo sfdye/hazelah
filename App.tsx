@@ -18,8 +18,8 @@ import {
   HeadlineMetric,
   advisoryFor,
   neaBand,
+  psiBand,
   psiDescriptor,
-  sgPsiSubIndex,
   usEpaAqi,
 } from './src/airQuality';
 import { BAND_THEME, COLORS, FALLBACK_THEME, withAlpha } from './src/theme';
@@ -30,7 +30,7 @@ import { Sparkline } from './src/components/Sparkline';
 const METRICS: Array<{ key: HeadlineMetric; label: string }> = [
   { key: 'band', label: 'PM2.5' },
   { key: 'aqi', label: 'AQI' },
-  { key: 'psi', label: 'Hourly PSI' },
+  { key: 'psi', label: '24-hr PSI' },
 ];
 
 const MAP_CENTER = { latitude: 1.3521, longitude: 103.8198 };
@@ -100,20 +100,29 @@ export default function App() {
   const reading = snapshot?.readings[region];
   const pm25 = reading?.pm25 ?? null;
   const psi = reading?.psi ?? null;
-  const bandDef = pm25 != null ? neaBand(pm25) : null;
+  const bandDef =
+    metric === 'psi'
+      ? psi != null
+        ? psiBand(psi)
+        : null
+      : pm25 != null
+        ? neaBand(pm25)
+        : null;
   const theme = bandDef ? BAND_THEME[bandDef.band] : FALLBACK_THEME;
 
   const headline = useMemo(() => {
+    if (metric === 'psi') {
+      if (psi == null) return null;
+      return { value: String(psi), label: '24-hr PSI · NEA' };
+    }
     if (pm25 == null) return null;
     switch (metric) {
       case 'band':
         return { value: String(pm25), label: `1-hr PM2.5 · µg/m³` };
       case 'aqi':
         return { value: String(usEpaAqi(pm25)), label: 'US AQI (computed)' };
-      case 'psi':
-        return { value: String(sgPsiSubIndex(pm25)), label: 'Hourly PSI*' };
     }
-  }, [metric, pm25]);
+  }, [metric, pm25, psi]);
 
   const sparkValues = useMemo(
     () => history.map((h) => h.pm25[region]).filter((v): v is number => v != null),
@@ -161,7 +170,7 @@ export default function App() {
             <View style={styles.headline}>
               <Text style={[styles.value, { color: theme.color }]}>{headline.value}</Text>
               <Text style={styles.valueLabel}>{headline.label}</Text>
-              {bandDef && metric === 'band' && (
+              {bandDef && metric !== 'aqi' && (
                 <Text style={[styles.bandLabel, { color: theme.color }]}>{bandDef.label}</Text>
               )}
             </View>
@@ -277,7 +286,7 @@ export default function App() {
         )}
 
         <Text style={styles.footer}>
-          Data: NEA via data.gov.sg · Hourly PSI/AQI are computed, not NEA-published · Not
+          Data: NEA via data.gov.sg · AQI is computed, not NEA-published · Not
           affiliated with NEA
         </Text>
       </ScrollView>

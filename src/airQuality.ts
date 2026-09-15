@@ -76,3 +76,12 @@ export function psiDescriptor(psi: number): string {
   if (psi <= 300) return 'Very Unhealthy';
   return 'Hazardous';
 }
+
+// Official 24-hr PSI tiers mapped onto the PM2.5 band theme, so advisories stay
+// aligned with NEA/MOH guidance (which is keyed to 24-hr PSI).
+export function psiBand(psi: number): { band: Band; label: string } {
+  if (psi <= 100) return { band: 'normal', label: psiDescriptor(psi) };
+  if (psi <= 200) return { band: 'elevated', label: psiDescriptor(psi) };
+  if (psi <= 300) return { band: 'high', label: psiDescriptor(psi) };
+  return { band: 'veryHigh', label: psiDescriptor(psi) };
+}

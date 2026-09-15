@@ -54,7 +54,7 @@ Three breakpoint tables, all applied to the 1-hr PM2.5 concentration:
    - Breakpoints 0–12 → 0–50, 13–55 → 51–100 (worked example: 40 µg/m³ → 83)
    - Note: true PSI is max of 6 sub-indices; PM2.5-only is a haze-season proxy — footnote in About.
 
-Presentation: NEA band primary; AQI/PSI display user-toggleable. Health advisory copy hangs off official NEA bands only (NEA disclaims computed hourly indices: "not supported by any studies or health findings"). About screen: "Not affiliated with NEA" + PM2.5-proxy footnote.
+Presentation: NEA band primary; toggleable headline: 1-hr PM2.5 / US AQI (computed) / **24-hr PSI (official, like Haze@SG & myENV)**. When 24-hr PSI is selected, theme + advisory derive from official PSI tiers (≤100 → Normal, 101–200 Unhealthy → "reduce", 201–300 Very Unhealthy → "avoid", >300 Hazardous → "minimise") so guidance stays aligned with NEA/MOH. `sgPsiSubIndex` (computed hourly PSI) stays in the module but is not surfaced on the phone — NEA disclaims computed hourly indices: "not supported by any studies or health findings". About screen: "Not affiliated with NEA" + PM2.5-proxy footnote.
 
 ## 5. Architecture
 
@@ -219,3 +219,4 @@ Personal project → `sfdye` handle segment, not `lwan` (Zendesk identity). Watc
 | 2026-09-15 | M1 done: Expo SDK 57 scaffold + data layer + main screen live on iOS simulator (real NEA data verified) | API spike confirmed shapes: psi → `psi_twenty_four_hourly` + sub-indices; pm25 → `pm25_one_hourly`; regionMetadata has labelLocation |
 | 2026-09-15 | Region map added, haze.gov.sg-style: dark Apple Maps + band-colored zone Circles + overlaid name/value labels (RN views projected from lat/lng) | react-native-maps 1.27 Fabric Marker doesn't render custom children — native Markers replaced by projected RN overlays; static map (pan/zoom off) keeps projection exact |
 | 2026-09-15 | 24-h sparkline backfilled from NEA legacy v1 endpoint (`api.data.gov.sg/v1/environment/pm25?date=`), merged into the live-polled history on launch | v2 realtime API has no history; polling alone takes ~a day to accumulate a trend. Legacy v1 still serves full-day hourly readings — treat as unofficial, fail soft (empty array) |
+| 2026-09-15 | PSI headline tab switched from computed hourly PSI to the official 24-hr PSI (per user; matches Haze@SG/myENV); theme + advisory now derive from the selected metric | Computed hourly PSI duplicated the AQI tab's job (same 1-hr PM2.5 input, different scale), and NEA health advisories are officially keyed to 24-hr PSI |
