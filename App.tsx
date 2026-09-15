@@ -132,8 +132,8 @@ export default function App() {
     () => ({
       latitude: 1.3046,
       longitude: 103.847,
-      longitudeDelta: 0.588,
-      latitudeDelta: (0.588 * MAP_HEIGHT) / sparkWidth,
+      longitudeDelta: 0.572,
+      latitudeDelta: (0.572 * MAP_HEIGHT) / sparkWidth,
     }),
     [sparkWidth],
   );
