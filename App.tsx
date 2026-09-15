@@ -290,7 +290,9 @@ export default function App() {
                     </Pressable>
                   );
                 })}
-                <Text style={styles.mapAttribution}>© OpenStreetMap · © CARTO</Text>
+                {Platform.OS === 'android' && (
+                  <Text style={styles.mapAttribution}>© OpenStreetMap · © CARTO</Text>
+                )}
               </View>
             </View>
 
