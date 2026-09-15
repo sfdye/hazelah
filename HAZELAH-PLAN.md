@@ -164,7 +164,7 @@ Deep-links to the main screen via `data.screen`.
 - EAS project linked: `@sfdye/hazelah` (expo.dev/accounts/sfdye/projects/hazelah). `expo-dev-client` installed.
 - Cloud build: `npx eas build -p ios --profile development` (interactive: Apple ID sign-in + device registration, then install via the link/QR EAS prints, or `npx eas build:run -p ios`).
 - Local build alternative: plug iPhone in via USB → `npx expo run:ios --device` (uses existing local "Apple Development: Liuyang Wan (APK283H24B)" cert; free-team profiles expire in 7 days).
-- Android: dev build as installable APK (`buildType: apk` in the development profile); Google Maps SDK key will be required for the map on Android (Apple Maps needs none).
+- Android: dev build as installable APK (`buildType: apk` in the development profile). No Google Maps key needed — the region map is self-drawn SVG (see decision log).
 
 ## 11. Naming & store compliance
 
@@ -220,3 +220,4 @@ Personal project → `sfdye` handle segment, not `lwan` (Zendesk identity). Watc
 | 2026-09-15 | Region map added, haze.gov.sg-style: dark Apple Maps + band-colored zone Circles + overlaid name/value labels (RN views projected from lat/lng) | react-native-maps 1.27 Fabric Marker doesn't render custom children — native Markers replaced by projected RN overlays; static map (pan/zoom off) keeps projection exact |
 | 2026-09-15 | 24-h sparkline backfilled from NEA legacy v1 endpoint (`api.data.gov.sg/v1/environment/pm25?date=`), merged into the live-polled history on launch | v2 realtime API has no history; polling alone takes ~a day to accumulate a trend. Legacy v1 still serves full-day hourly readings — treat as unofficial, fail soft (empty array) |
 | 2026-09-15 | PSI headline tab switched from computed hourly PSI to the official 24-hr PSI (per user; matches Haze@SG/myENV); theme + advisory now derive from the selected metric | Computed hourly PSI duplicated the AQI tab's job (same 1-hr PM2.5 input, different scale), and NEA health advisories are officially keyed to 24-hr PSI |
+| 2026-09-15 | Region map rewritten as self-drawn SVG basemap (`src/sgOutline.ts`, OSM boundary via Nominatim, ODbL): Singapore landmass polygon + band-colored circles + staggered label pills with leader lines; react-native-maps removed | Cross-platform parity (Android react-native-maps needs a Google Maps API key), fully fixed map by construction, bounds fit exactly to Singapore, no Fabric Marker quirks — and it matches haze.gov.sg's stylized look |

@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import MapView, { Circle } from 'react-native-maps';
+import Svg, { Circle, Line, Polygon } from 'react-native-svg';
 import * as Location from 'expo-location';
 import { fetchSnapshot } from './src/api';
+import { SG_OUTLINE } from './src/sgOutline';
 import { appendHistory, backfillHistory, loadHistory } from './src/history';
 import {
   HeadlineMetric,
@@ -33,19 +34,46 @@ const METRICS: Array<{ key: HeadlineMetric; label: string }> = [
   { key: 'psi', label: '24-hr PSI' },
 ];
 
-const MAP_CENTER = { latitude: 1.3521, longitude: 103.8198 };
-const MAP_DELTA = { latitudeDelta: 0.45, longitudeDelta: 0.6 };
 const MAP_HEIGHT = 240;
+const MAP_PAD = 16;
 
+const MAP_BOUNDS = SG_OUTLINE.flat().reduce(
+  (b, [lng, lat]) => ({
+    minLng: Math.min(b.minLng, lng),
+    maxLng: Math.max(b.maxLng, lng),
+    minLat: Math.min(b.minLat, lat),
+    maxLat: Math.max(b.maxLat, lat),
+  }),
+  { minLng: Infinity, maxLng: -Infinity, minLat: Infinity, maxLat: -Infinity },
+);
+
+// Uniform-scale fit of the Singapore bounds into the card, centered.
 function projectToMap(
   latitude: number,
   longitude: number,
   width: number,
 ): { x: number; y: number } {
-  const x = ((longitude - MAP_CENTER.longitude) / MAP_DELTA.longitudeDelta + 0.5) * width;
-  const y = (0.5 - (latitude - MAP_CENTER.latitude) / MAP_DELTA.latitudeDelta) * MAP_HEIGHT;
-  return { x, y };
+  const scale = Math.min(
+    (width - MAP_PAD * 2) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng),
+    (MAP_HEIGHT - MAP_PAD * 2) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat),
+  );
+  const centerLng = (MAP_BOUNDS.minLng + MAP_BOUNDS.maxLng) / 2;
+  const centerLat = (MAP_BOUNDS.minLat + MAP_BOUNDS.maxLat) / 2;
+  return {
+    x: width / 2 + (longitude - centerLng) * scale,
+    y: MAP_HEIGHT / 2 - (latitude - centerLat) * scale,
+  };
 }
+
+// Label slots as fractions of the map card, staggered so pills never overlap
+// (three regions share longitude 103.82 — centroids alone would stack them).
+const LABEL_SLOTS: Record<RegionName, { fx: number; fy: number }> = {
+  north: { fx: 0.42, fy: 0.13 },
+  east: { fx: 0.74, fy: 0.2 },
+  central: { fx: 0.56, fy: 0.45 },
+  west: { fx: 0.24, fy: 0.38 },
+  south: { fx: 0.4, fy: 0.7 },
+};
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -195,38 +223,69 @@ export default function App() {
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, styles.mapTitle]}>Regions</Text>
               <View style={[styles.mapCard, { width: sparkWidth, height: MAP_HEIGHT }]}>
-                <MapView
-                  style={{ width: sparkWidth, height: MAP_HEIGHT }}
-                  userInterfaceStyle="dark"
-                  initialRegion={{ ...MAP_CENTER, ...MAP_DELTA }}
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  rotateEnabled={false}
-                  pitchEnabled={false}
-                >
+                <Svg width={sparkWidth} height={MAP_HEIGHT}>
+                  {SG_OUTLINE.map((ring, i) => (
+                    <Polygon
+                      key={i}
+                      points={ring
+                        .map(([lng, lat]) => {
+                          const { x, y } = projectToMap(lat, lng, sparkWidth);
+                          return `${x.toFixed(1)},${y.toFixed(1)}`;
+                        })
+                        .join(' ')}
+                      fill="#232936"
+                      stroke="#39414f"
+                      strokeWidth={1}
+                    />
+                  ))}
+                  {REGIONS.map((r) => {
+                    const slot = LABEL_SLOTS[r.name];
+                    const lx = slot.fx * sparkWidth;
+                    const ly = slot.fy * MAP_HEIGHT;
+                    const { x, y } = projectToMap(
+                      r.labelLocation.latitude,
+                      r.labelLocation.longitude,
+                      sparkWidth,
+                    );
+                    return (
+                      <Line
+                        key={r.name}
+                        x1={lx}
+                        y1={ly}
+                        x2={x}
+                        y2={y}
+                        stroke="#5a6272"
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                   {REGIONS.map((r) => {
                     const pm = snapshot?.readings[r.name]?.pm25;
                     const band = pm != null ? neaBand(pm) : null;
                     const color = band ? BAND_THEME[band.band].color : COLORS.faint;
                     const selected = r.name === region;
+                    const { x, y } = projectToMap(
+                      r.labelLocation.latitude,
+                      r.labelLocation.longitude,
+                      sparkWidth,
+                    );
                     return (
                       <Circle
                         key={r.name}
-                        center={r.labelLocation}
-                        radius={6000}
-                        strokeColor={withAlpha(color, selected ? 1 : 0.7)}
-                        strokeWidth={selected ? 2.5 : 1}
-                        fillColor={withAlpha(color, selected ? 0.45 : 0.22)}
+                        cx={x}
+                        cy={y}
+                        r={selected ? 28 : 24}
+                        stroke={withAlpha(color, selected ? 1 : 0.8)}
+                        strokeWidth={selected ? 2.5 : 1.5}
+                        fill={withAlpha(color, selected ? 0.5 : 0.32)}
                       />
                     );
                   })}
-                </MapView>
+                </Svg>
                 {REGIONS.map((r) => {
-                  const { x, y } = projectToMap(
-                    r.labelLocation.latitude,
-                    r.labelLocation.longitude,
-                    sparkWidth,
-                  );
+                  const slot = LABEL_SLOTS[r.name];
+                  const x = slot.fx * sparkWidth;
+                  const y = slot.fy * MAP_HEIGHT;
                   const pm = snapshot?.readings[r.name]?.pm25;
                   const band = pm != null ? neaBand(pm) : null;
                   const color = band ? BAND_THEME[band.band].color : COLORS.faint;
@@ -327,20 +386,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignSelf: 'center',
     position: 'relative',
+    backgroundColor: '#0c111b',
   },
   mapLabel: {
     position: 'absolute',
-    backgroundColor: 'rgba(10,10,10,0.78)',
-    borderRadius: 10,
-    borderWidth: 1.5,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(8,9,12,0.92)',
+    borderRadius: 14,
+    borderWidth: 2.5,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     alignItems: 'center',
-    minWidth: 52,
+    minWidth: 76,
     transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
   },
-  mapLabelText: { fontSize: 11, fontWeight: '700' },
-  mapLabelValue: { fontSize: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  mapLabelText: { fontSize: 13, fontWeight: '700', letterSpacing: 0.4 },
+  mapLabelValue: { fontSize: 24, fontWeight: '800', fontVariant: ['tabular-nums'] },
   sectionTitle: { color: COLORS.subtext, fontSize: 13, fontWeight: '600' },
   hint: { color: COLORS.faint, fontSize: 13, marginTop: 12 },
   divider: { height: 1, marginTop: 28 },
