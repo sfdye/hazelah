@@ -131,8 +131,8 @@ export default function App() {
     return {
       latitude: lat,
       longitude: lng,
-      longitudeDelta: 0.5,
-      latitudeDelta: (0.5 * MAP_HEIGHT) / sparkWidth,
+      longitudeDelta: 0.42,
+      latitudeDelta: (0.42 * MAP_HEIGHT) / sparkWidth,
     };
   }, [sparkWidth]);
   const toPx = useCallback(
