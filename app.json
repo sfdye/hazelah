@@ -10,7 +10,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sfdye.hazelah",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "HazeLah picks your nearest NEA region to show the air quality where you are."
+        "NSLocationWhenInUseUsageDescription": "HazeLah picks your nearest NEA region to show the air quality where you are.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

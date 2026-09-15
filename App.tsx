@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { fetchSnapshot } from './src/api';
-import { appendHistory, loadHistory } from './src/history';
+import { appendHistory, backfillHistory, loadHistory } from './src/history';
 import {
   HeadlineMetric,
   advisoryFor,
@@ -78,6 +78,7 @@ export default function App() {
   useEffect(() => {
     (async () => {
       setHistory(await loadHistory());
+      backfillHistory().then(setHistory).catch(() => {});
       try {
         const { status } = await Location.getForegroundPermissionsAsync();
         if (status === 'granted') {
