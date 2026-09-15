@@ -150,6 +150,13 @@ Deep-links to the main screen via `data.screen`.
 - Scaling caveats: Expo Push ≤100 tokens/POST → chunk fan-out past ~5k devices; Workers Paid is $5/mo flat (10M req/mo, 1M KV writes/mo) if ever needed.
 - Alternatives considered: Deno Deploy (equivalent), Lambda+EventBridge+DynamoDB (more ceremony), GitHub Actions cron (unreliable 10–60 min delays — rejected), local-only BGTaskScheduler/WorkManager (iOS can be hours late — rejected).
 
+### Dev builds (physical iPhone)
+
+- EAS project linked: `@sfdye/hazelah` (expo.dev/accounts/sfdye/projects/hazelah). `expo-dev-client` installed.
+- Cloud build: `npx eas build -p ios --profile development` (interactive: Apple ID sign-in + device registration, then install via the link/QR EAS prints, or `npx eas build:run -p ios`).
+- Local build alternative: plug iPhone in via USB → `npx expo run:ios --device` (uses existing local "Apple Development: Liuyang Wan (APK283H24B)" cert; free-team profiles expire in 7 days).
+- Android: dev build as installable APK (`buildType: apk` in the development profile); Google Maps SDK key will be required for the map on Android (Apple Maps needs none).
+
 ## 11. Naming & store compliance
 
 - **Name: HazeLah** (7 chars; survives icon-label truncation; unique — no collisions found on either store).
@@ -201,3 +208,4 @@ Personal project → `sfdye` handle segment, not `lwan` (Zendesk identity). Watc
 | 2026-09-15 | Identifiers: `com.sfdye.hazelah` base | Personal project → sfdye handle; watch/widget/App-Group suffixes hang off this base; irreversible post-publish so locked early |
 | 2026-09-15 | No location prompt on cold launch; silent read + manual chips (M1 verified) | Cold-launch permission prompts are an anti-pattern; Expo Go also surfaces its own dialog — M2 adds opt-in "locate me" |
 | 2026-09-15 | M1 done: Expo SDK 57 scaffold + data layer + main screen live on iOS simulator (real NEA data verified) | API spike confirmed shapes: psi → `psi_twenty_four_hourly` + sub-indices; pm25 → `pm25_one_hourly`; regionMetadata has labelLocation |
+| 2026-09-15 | Region map added, haze.gov.sg-style: dark Apple Maps + band-colored zone Circles + overlaid name/value labels (RN views projected from lat/lng) | react-native-maps 1.27 Fabric Marker doesn't render custom children — native Markers replaced by projected RN overlays; static map (pan/zoom off) keeps projection exact |
