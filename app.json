@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "HazeLah",
+    "slug": "hazelah",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sfdye.hazelah",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "HazeLah picks your nearest NEA region to show the air quality where you are.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyCupXBZkhvciRwxZZkahgwfcBWCiBdsIOs"
+      }
+    },
+    "android": {
+      "package": "com.sfdye.hazelah",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAo5PvOFEnDh75pf6bRElVQTqM6naWjFBg"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a36dd94f-e375-432c-b1ba-fbed08c55687"
+      }
+    },
+    "owner": "sfdye",
+    "plugins": [
+      "./plugins/react-native-maps-pod"
+    ]
+  }
+}
